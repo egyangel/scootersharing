@@ -1,6 +1,9 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
+import 'package:amplify_api/amplify_api.dart';
+import 'package:amplify_flutter/amplify.dart';
+
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:my_cab/Language/appLocalizations.dart';
@@ -13,7 +16,6 @@ import 'package:my_cab/modules/home/MapPinSelectionView.dart';
 import 'package:my_cab/modules/home/addressSelctionView.dart';
 import 'package:my_cab/modules/home/requset_view.dart';
 import 'package:location/location.dart';
-
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -53,16 +55,16 @@ class _HomeScreenState extends State<HomeScreen>
   void setMakerPinSize(BuildContext context) async {
     if (currentcontext == null) {
       currentcontext = context;
-      final ImageConfiguration imagesStartConfiguration = createLocalImageConfiguration(
-          currentcontext);
+      final ImageConfiguration imagesStartConfiguration =
+          createLocalImageConfiguration(currentcontext);
       carMapBitmapDescriptor = await BitmapDescriptor.fromAssetImage(
           imagesStartConfiguration, ConstanceData.mapCar);
-      final ImageConfiguration startStartConfiguration = createLocalImageConfiguration(
-          currentcontext);
+      final ImageConfiguration startStartConfiguration =
+          createLocalImageConfiguration(currentcontext);
       startMapBitmapDescriptor = await BitmapDescriptor.fromAssetImage(
           startStartConfiguration, ConstanceData.startmapPin);
-      final ImageConfiguration endStartConfiguration = createLocalImageConfiguration(
-          currentcontext);
+      final ImageConfiguration endStartConfiguration =
+          createLocalImageConfiguration(currentcontext);
       endMapBitmapDescriptor = await BitmapDescriptor.fromAssetImage(
           endStartConfiguration, ConstanceData.endmapPin);
     }
@@ -79,34 +81,31 @@ class _HomeScreenState extends State<HomeScreen>
 
     _serviceEnabled = await location.serviceEnabled();
     if (!_serviceEnabled) {
-    _serviceEnabled = await location.requestService();
-    if (!_serviceEnabled) {
-    return;
-    }
+      _serviceEnabled = await location.requestService();
+      if (!_serviceEnabled) {
+        return;
+      }
     }
 
     _permissionGranted = await location.hasPermission();
     if (_permissionGranted == PermissionStatus.denied) {
-    _permissionGranted = await location.requestPermission();
-    if (_permissionGranted != PermissionStatus.granted) {
-    return;
-    }
+      _permissionGranted = await location.requestPermission();
+      if (_permissionGranted != PermissionStatus.granted) {
+        return;
+      }
     }
     try {
-    currentLocation = await location.getLocation();
+      currentLocation = await location.getLocation();
     } on Exception {
-    currentLocation = null;
+      currentLocation = null;
     }
 
     _mapController.animateCamera(CameraUpdate.newCameraPosition(
-    CameraPosition(
-    bearing: 2,
-    target: LatLng(currentLocation.latitude, currentLocation.longitude),
-
-    zoom: 17.0,
-    ),
-
-
+      CameraPosition(
+        bearing: 2,
+        target: LatLng(currentLocation.latitude, currentLocation.longitude),
+        zoom: 17.0,
+      ),
     ));
   }
 
@@ -117,15 +116,39 @@ class _HomeScreenState extends State<HomeScreen>
   @override
   void initState() {
     serachController.text = AppLocalizations.of('105 William st, Chicago, US');
-    animationController =
-    new AnimationController(vsync: this, duration: Duration(milliseconds: 480));
+    animationController = new AnimationController(
+        vsync: this, duration: Duration(milliseconds: 480));
     animationController..animateTo(1);
     super.initState();
     _carPinInitState();
   }
 
-  void _carPinInitState() {
-    carPointOne = ConstanceData.getCarOnePolyLineList();
+  void _carPinInitState() async {
+    String graphQLDocument = '''query listVehicles {
+    listVehicles{
+    items {
+      GUID
+      fleet
+      location {
+        Lat
+        Lon
+      }
+      vehicleTyp
+      id
+      updatedAt
+    }
+    nextToken
+    startedAt
+  }
+}''';
+    var operation = Amplify.API.query(
+        request: GraphQLRequest<String>(
+      document: graphQLDocument,
+    ));
+
+    var response = await operation.response;
+    var data = response.data;
+
     carPointTwo = ConstanceData.getCarTwoPolyLineList();
     carPointThree = ConstanceData.getCarThreePolyLineList();
     carPointFour = ConstanceData.getCarFourPolyLineList();
@@ -183,25 +206,25 @@ class _HomeScreenState extends State<HomeScreen>
         LatLng startPoint = i == 0
             ? carPointOne[carOneIndex]
             : i == 1
-            ? carPointTwo[carTwoIndex]
-            : i == 2
-            ? carPointThree[carThreeIndex]
-            : carPointFour[carFourIndex];
+                ? carPointTwo[carTwoIndex]
+                : i == 2
+                    ? carPointThree[carThreeIndex]
+                    : carPointFour[carFourIndex];
         LatLng lastPoint = i == 0
             ? carPointOne[carOneIndex - 1 == -1
-            ? carPointOne.length - 1
-            : carOneIndex - 1]
+                ? carPointOne.length - 1
+                : carOneIndex - 1]
             : i == 1
-            ? carPointTwo[carTwoIndex - 1 == -1
-            ? carPointTwo.length - 1
-            : carTwoIndex - 1]
-            : i == 2
-            ? carPointThree[carThreeIndex - 1 == -1
-            ? carPointThree.length - 1
-            : carThreeIndex - 1]
-            : carPointFour[carFourIndex - 1 == -1
-            ? carPointFour.length - 1
-            : carFourIndex - 1];
+                ? carPointTwo[carTwoIndex - 1 == -1
+                    ? carPointTwo.length - 1
+                    : carTwoIndex - 1]
+                : i == 2
+                    ? carPointThree[carThreeIndex - 1 == -1
+                        ? carPointThree.length - 1
+                        : carThreeIndex - 1]
+                    : carPointFour[carFourIndex - 1 == -1
+                        ? carPointFour.length - 1
+                        : carFourIndex - 1];
 
         final MarkerId markerId2 = MarkerId('$i');
         final Marker marker2 = Marker(
@@ -214,7 +237,8 @@ class _HomeScreenState extends State<HomeScreen>
       }
     }
 
-    if (startMapBitmapDescriptor != null && endMapBitmapDescriptor != null &&
+    if (startMapBitmapDescriptor != null &&
+        endMapBitmapDescriptor != null &&
         prosseType == ProsseType.requset) {
       final MarkerId markerId2 = MarkerId('start');
       final Marker marker2 = Marker(
@@ -263,13 +287,9 @@ class _HomeScreenState extends State<HomeScreen>
     return Scaffold(
       key: _scaffoldKey,
       drawer: SizedBox(
-        width: MediaQuery
-            .of(context)
-            .size
-            .width * 0.75 < 400 ? MediaQuery
-            .of(context)
-            .size
-            .width * 0.72 : 350,
+        width: MediaQuery.of(context).size.width * 0.75 < 400
+            ? MediaQuery.of(context).size.width * 0.72
+            : 350,
         child: Drawer(
           child: AppDrawer(
             selectItemName: 'Home',
@@ -282,10 +302,7 @@ class _HomeScreenState extends State<HomeScreen>
             top: 0,
             left: 0,
             right: 0,
-            height: MediaQuery
-                .of(context)
-                .size
-                .height,
+            height: MediaQuery.of(context).size.height,
             child: GoogleMap(
               initialCameraPosition: CameraPosition(
                 target: _londonLatLong,
@@ -315,35 +332,36 @@ class _HomeScreenState extends State<HomeScreen>
               : SizedBox(),
           prosseType == ProsseType.dropOff
               ? AddressSelctionView(
-            animationController: animationController,
-            isSerchMode: isSerchMode,
-            isUp: isUp,
-            mapCallBack: () {
-              animationController.animateTo(
-                  1, duration: Duration(milliseconds: 480)).then((f) {
-                setState(() {
-                  prosseType = ProsseType.mapPin;
-                });
-              });
-            },
-            onSerchMode: (onSerchMode) {
-              if (isSerchMode != onSerchMode) {
-                setState(() {
-                  isSerchMode = onSerchMode;
-                });
-              }
-            },
-            onUp: (onUp) {
-              if (isUp != onUp) {
-                setState(() {
-                  isUp = onUp;
-                });
-              }
-            },
-            serachController: serachController,
-            gpsClick: () {
-              if (_mapController != null) {
-                /*
+                  animationController: animationController,
+                  isSerchMode: isSerchMode,
+                  isUp: isUp,
+                  mapCallBack: () {
+                    animationController
+                        .animateTo(1, duration: Duration(milliseconds: 480))
+                        .then((f) {
+                      setState(() {
+                        prosseType = ProsseType.mapPin;
+                      });
+                    });
+                  },
+                  onSerchMode: (onSerchMode) {
+                    if (isSerchMode != onSerchMode) {
+                      setState(() {
+                        isSerchMode = onSerchMode;
+                      });
+                    }
+                  },
+                  onUp: (onUp) {
+                    if (isUp != onUp) {
+                      setState(() {
+                        isUp = onUp;
+                      });
+                    }
+                  },
+                  serachController: serachController,
+                  gpsClick: () {
+                    if (_mapController != null) {
+                      /*
                       _mapController.animateCamera(
                         CameraUpdate.newCameraPosition(
                           CameraPosition(
@@ -353,48 +371,49 @@ class _HomeScreenState extends State<HomeScreen>
                           ),
                         ),
                       );*/
-                this._currentLocation();
-              }
-              MyApp.changeTheme(context);
-              setMapStyle();
-            },
-          )
+                      this._currentLocation();
+                    }
+                    MyApp.changeTheme(context);
+                    setMapStyle();
+                  },
+                )
               : prosseType == ProsseType.mapPin
-              ? MapPinSelectionView(
-            barText: AppLocalizations.of('105 William st, Chicago, US'),
-            onBackClick: () {
-              setState(() {
-                prosseType = ProsseType.dropOff;
-              });
-            },
-            gpsClick: () {
-              if (_mapController != null) {
-                _mapController.animateCamera(
-                  CameraUpdate.newCameraPosition(
-                    CameraPosition(
-                      target: _londonLatLong,
-                      zoom: 16.0,
-                      tilt: 24.0,
-                    ),
-                  ),
-                );
-              }
-              MyApp.changeTheme(context);
-              setMapStyle();
-            },
-            callback: () {
-              setState(() {
-                prosseType = ProsseType.requset;
-              });
-            },
-          )
-              : RequsetView(
-            onBack: () {
-              setState(() {
-                prosseType = ProsseType.dropOff;
-              });
-            },
-          )
+                  ? MapPinSelectionView(
+                      barText:
+                          AppLocalizations.of('105 William st, Chicago, US'),
+                      onBackClick: () {
+                        setState(() {
+                          prosseType = ProsseType.dropOff;
+                        });
+                      },
+                      gpsClick: () {
+                        if (_mapController != null) {
+                          _mapController.animateCamera(
+                            CameraUpdate.newCameraPosition(
+                              CameraPosition(
+                                target: _londonLatLong,
+                                zoom: 16.0,
+                                tilt: 24.0,
+                              ),
+                            ),
+                          );
+                        }
+                        MyApp.changeTheme(context);
+                        setMapStyle();
+                      },
+                      callback: () {
+                        setState(() {
+                          prosseType = ProsseType.requset;
+                        });
+                      },
+                    )
+                  : RequsetView(
+                      onBack: () {
+                        setState(() {
+                          prosseType = ProsseType.dropOff;
+                        });
+                      },
+                    )
         ],
       ),
     );
@@ -404,10 +423,8 @@ class _HomeScreenState extends State<HomeScreen>
     return Column(
       children: <Widget>[
         Padding(
-          padding: EdgeInsets.only(top: MediaQuery
-              .of(context)
-              .padding
-              .top, left: 8, right: 8),
+          padding: EdgeInsets.only(
+              top: MediaQuery.of(context).padding.top, left: 8, right: 8),
           child: Row(
             children: <Widget>[
               SizedBox(
@@ -421,9 +438,7 @@ class _HomeScreenState extends State<HomeScreen>
                       borderRadius: BorderRadius.circular(32.0),
                     ),
                     child: Container(
-                      color: Theme
-                          .of(context)
-                          .cardColor,
+                      color: Theme.of(context).cardColor,
                       padding: EdgeInsets.all(2),
                       child: InkWell(
                         onTap: () {
@@ -448,13 +463,11 @@ class _HomeScreenState extends State<HomeScreen>
   void setMapStyle() async {
     if (_mapController != null) {
       if (globals.isLight)
-        _mapController.setMapStyle(
-            await DefaultAssetBundle.of(context).loadString(
-                "assets/jsonFile/light_mapstyle.json"));
+        _mapController.setMapStyle(await DefaultAssetBundle.of(context)
+            .loadString("assets/jsonFile/light_mapstyle.json"));
       else
-        _mapController.setMapStyle(
-            await DefaultAssetBundle.of(context).loadString(
-                "assets/jsonFile/dark_mapstyle.json"));
+        _mapController.setMapStyle(await DefaultAssetBundle.of(context)
+            .loadString("assets/jsonFile/dark_mapstyle.json"));
     }
   }
 }

@@ -1,8 +1,15 @@
 import 'dart:async';
+import 'package:amplify_analytics_pinpoint/amplify_analytics_pinpoint.dart';
+import 'package:amplify_api/amplify_api.dart';
+import 'package:amplify_auth_cognito/amplify_auth_cognito.dart';
+import 'package:amplify_datastore/amplify_datastore.dart';
+import 'package:amplify_flutter/amplify.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_page_indicator/flutter_page_indicator.dart';
 import 'package:my_cab/Language/appLocalizations.dart';
 import 'package:my_cab/modules/splash/nice_introduction_screen.dart';
+
+import '../../amplifyconfiguration.dart';
 
 class IntroductionScreen extends StatefulWidget {
   @override
@@ -16,33 +23,58 @@ class _IntroductionScreenState extends State<IntroductionScreen> {
   Timer sliderTimer;
   var currentShowIndex = 0;
 
+  void _configureAmplify() async {
+    // Add Pinpoint and Cognito Plugins, or any other plugins you want to use
+    AmplifyAnalyticsPinpoint analyticsPlugin = AmplifyAnalyticsPinpoint();
+    AmplifyAuthCognito authPlugin = AmplifyAuthCognito();
+
+    await Amplify.addPlugins(
+        [  AmplifyAPI()]);
+
+    // Once Plugins are added, configure Amplify
+    // Note: Amplify can only be configured once.
+    try {
+      await Amplify.configure(amplifyconfig);
+    } on AmplifyAlreadyConfiguredException {
+      print(
+          "Tried to reconfigure Amplify; this can occur when your app restarts on Android.");
+    }
+  }
+
   @override
   void initState() {
+    _configureAmplify();
     pageViewModelData.add(PageViewData(
       titleText: AppLocalizations.of('Confirm your Driver'),
-      subText: AppLocalizations.of('Huge drivers network helps you find a\ncomfortable and cheap ride'),
+      subText: AppLocalizations.of(
+          'Huge drivers network helps you find a\ncomfortable and cheap ride'),
       assetsImage: 'assets/images/intro_1.png',
     ));
 
     pageViewModelData.add(PageViewData(
       titleText: AppLocalizations.of('Request Ride'),
-      subText: AppLocalizations.of('Request a ride gets picked up by a\nnearby community driver'),
+      subText: AppLocalizations.of(
+          'Request a ride gets picked up by a\nnearby community driver'),
       assetsImage: 'assets/images/intro_2.png',
     ));
 
     pageViewModelData.add(PageViewData(
       titleText: AppLocalizations.of('Track your ride'),
-      subText: AppLocalizations.of('Know your driver in advance and be\nable to view current location in real-time\non the map'),
+      subText: AppLocalizations.of(
+          'Know your driver in advance and be\nable to view current location in real-time\non the map'),
       assetsImage: 'assets/images/intro_3.png',
     ));
 
     sliderTimer = Timer.periodic(Duration(seconds: 4), (timer) {
       if (currentShowIndex == 0) {
-        pageController.animateTo(MediaQuery.of(context).size.width, duration: Duration(seconds: 1), curve: Curves.fastOutSlowIn);
+        pageController.animateTo(MediaQuery.of(context).size.width,
+            duration: Duration(seconds: 1), curve: Curves.fastOutSlowIn);
       } else if (currentShowIndex == 1) {
-        pageController.animateTo(MediaQuery.of(context).size.width * 2, duration: Duration(seconds: 1), curve: Curves.fastOutSlowIn);
+        pageController.animateTo(MediaQuery.of(context).size.width * 2,
+            duration: Duration(seconds: 1), curve: Curves.fastOutSlowIn);
       } else if (currentShowIndex == 2) {
-        pageController.animateTo(0, duration: Duration(seconds: 1), curve: Curves.fastOutSlowIn);
+        pageController.animateTo(0,
+            duration: Duration(seconds: 1), curve: Curves.fastOutSlowIn);
       }
     });
     super.initState();
@@ -89,7 +121,8 @@ class _IntroductionScreenState extends State<IntroductionScreen> {
               activeColor: Theme.of(context).primaryColor,
             ),
             Padding(
-              padding: const EdgeInsets.only(left: 48, right: 48, bottom: 8, top: 32),
+              padding: const EdgeInsets.only(
+                  left: 48, right: 48, bottom: 8, top: 32),
               child: Container(
                 height: 48,
                 decoration: BoxDecoration(
@@ -111,13 +144,15 @@ class _IntroductionScreenState extends State<IntroductionScreen> {
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => NiceIntroductionScreen()),
+                        MaterialPageRoute(
+                            builder: (context) => NiceIntroductionScreen()),
                       );
                     },
                     child: Center(
                       child: Text(
                         AppLocalizations.of('Get Started!'),
-                        style: Theme.of(context).textTheme.subtitle1.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
+                        style: Theme.of(context).textTheme.subtitle1.copyWith(
+                            color: Colors.white, fontWeight: FontWeight.bold),
                       ),
                     ),
                   ),
@@ -167,7 +202,10 @@ class PagePopup extends StatelessWidget {
                 Text(
                   imageData.titleText,
                   textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.headline5.copyWith(fontWeight: FontWeight.bold),
+                  style: Theme.of(context)
+                      .textTheme
+                      .headline5
+                      .copyWith(fontWeight: FontWeight.bold),
                 ),
                 SizedBox(
                   height: 16,

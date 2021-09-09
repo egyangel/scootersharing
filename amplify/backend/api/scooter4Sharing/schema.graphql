@@ -1,0 +1,76 @@
+type Cards {
+  cardNumber: String
+  expireDate: [String]
+  name: String
+  cvv: String
+  lastName: String
+  active: Boolean
+}
+
+type Wallet {
+  minutes: Int
+  money: Float
+  discount: Float
+  Cards: Cards
+}
+
+type DistanceType {
+  Total: Float
+  TotalInMeter: Float
+  type: String
+}
+
+enum VehicleType {
+  CAR
+  SCOOTER
+  KICKSCOOTER
+}
+
+enum FleetName {
+  VIGEVANO
+  MILANO
+}
+
+type Location {
+  Lat: String
+  Lon: String
+}
+
+type Trip @model @auth(rules: [{allow: public}]) @key(name: "byUser", fields: ["userID"]) {
+  id: ID!
+  startDateTime: AWSDateTime
+  endDateTime: AWSDateTime
+  bookDateTime: AWSDateTime
+  totalTripInMinutes: Int
+  totalBookedTime: Int
+  extraBookedTime: Int
+  startLocation: Location
+  endLocation: Location
+  userID: ID
+  totalDistance: DistanceType
+  fleet: String
+  total: String
+  vat: String
+  totalWithVat: String
+  vatPercent: String
+  payed: Location
+}
+
+type Vehicle @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  GUID: String
+  fleet: FleetName
+  location: Location
+  vehicleTyp: VehicleType
+}
+
+type User @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  email: AWSEmail
+  name: String
+  lastName: String
+  cell: String
+  wallet: Wallet
+  Trips: [Trip] @connection(keyName: "byUser", fields: ["id"])
+}
+ 

@@ -1,0 +1,15 @@
+{
+  "staging": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-scooter4sharing-staging-180831-authRole",
+      "UnauthRoleArn": "arn:aws:iam::912547233721:role/amplify-scooter4sharing-staging-180831-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::912547233721:role/amplify-scooter4sharing-staging-180831-authRole",
+      "Region": "us-east-2",
+      "DeploymentBucketName": "amplify-scooter4sharing-staging-180831-deployment",
+      "UnauthRoleName": "amplify-scooter4sharing-staging-180831-unauthRole",
+      "StackName": "amplify-scooter4sharing-staging-180831",
+      "StackId": "arn:aws:cloudformation:us-east-2:912547233721:stack/amplify-scooter4sharing-staging-180831/f162adc0-1198-11ec-9b2d-0af95429e6a0",
+      "AmplifyAppId": "djx1zabwtmeon"
+    }
+  }
+}

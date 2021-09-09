@@ -10,6 +10,13 @@ import 'package:my_cab/modules/splash/SplashScreen.dart';
 import 'package:my_cab/modules/splash/introductionScreen.dart';
 import 'package:my_cab/constance/global.dart' as globals;
 import 'package:my_cab/constance/routes.dart';
+// Amplify Flutter Packages
+import 'package:amplify_flutter/amplify.dart';
+import 'package:amplify_analytics_pinpoint/amplify_analytics_pinpoint.dart';
+import 'package:amplify_auth_cognito/amplify_auth_cognito.dart';
+
+// Generated in previous step
+import 'amplifyconfiguration.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
